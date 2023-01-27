@@ -10,4 +10,11 @@ interface PathsRepository
      * @return array<int, string>
      */
     public function dirty();
+
+    /**
+     * Determine the changed files.
+     *
+     * @return array<int, string>
+     */
+    public function changed();
 }
