@@ -45,14 +45,7 @@ class GitPathsRepository implements PathsRepository
             ->values()
             ->all();
 
-        $files = array_values(array_map(function ($splFile) {
-            return $splFile->getPathname();
-        }, iterator_to_array(ConfigurationFactory::finder()
-            ->in($this->path)
-            ->files()
-        )));
-
-        return array_values(array_intersect($files, $dirtyFiles));
+        return array_values(array_intersect($this->files(), $dirtyFiles));
     }
 
     /**
@@ -74,13 +67,21 @@ class GitPathsRepository implements PathsRepository
             ->values()
             ->all();
 
-        $files = array_values(array_map(function ($splFile) {
+        return array_values(array_intersect($this->files(), $changedFiles));
+    }
+
+    /**
+     * Retrieves the files from the project path.
+     *
+     * @return array<int, string>
+     */
+    public function files()
+    {
+        return array_values(array_map(function ($splFile) {
             return $splFile->getPathname();
         }, iterator_to_array(ConfigurationFactory::finder()
             ->in($this->path)
             ->files()
         )));
-
-        return array_values(array_intersect($files, $changedFiles));
     }
 }
