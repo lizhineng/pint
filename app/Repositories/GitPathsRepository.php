@@ -54,4 +54,33 @@ class GitPathsRepository implements PathsRepository
 
         return array_values(array_intersect($files, $dirtyFiles));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function changed()
+    {
+        $process = tap(new Process(['git', 'log', 'origin..HEAD', '--pretty=', '--name-status']))->run();
+
+        if (! $process->isSuccessful()) {
+            abort(1, 'The [--changed] option is only available when using Git.');
+        }
+
+        $changedFiles = collect(preg_split('/\R+/', $process->getOutput(), flags: PREG_SPLIT_NO_EMPTY))
+            ->mapWithKeys(fn ($file) => [Str::after($file, "\t") => substr($file, 0, 1)])
+            ->reject(fn ($status) => $status === 'D')
+            ->map(fn ($status, $file) => $status === 'R' ? Str::after($file, "\t") : $file)
+            ->map(fn ($file) => $this->path.DIRECTORY_SEPARATOR.$file)
+            ->values()
+            ->all();
+
+        $files = array_values(array_map(function ($splFile) {
+            return $splFile->getPathname();
+        }, iterator_to_array(ConfigurationFactory::finder()
+            ->in($this->path)
+            ->files()
+        )));
+
+        return array_values(array_intersect($files, $changedFiles));
+    }
 }
