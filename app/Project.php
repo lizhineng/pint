@@ -18,6 +18,10 @@ class Project
             return static::resolveDirtyPaths();
         }
 
+        if ($input->getOption('changed')) {
+            return static::resolveChangedPaths();
+        }
+
         return $input->getArgument('path');
     }
 
@@ -42,6 +46,22 @@ class Project
 
         if (empty($files)) {
             abort(0, 'No dirty files found.');
+        }
+
+        return $files;
+    }
+
+    /**
+     * Resolves the changed paths, if any.
+     *
+     * @return array<int, string>
+     */
+    public static function resolveChangedPaths()
+    {
+        $files = app(PathsRepository::class)->changed();
+
+        if (empty($files)) {
+            abort(0, 'No changed files found.');
         }
 
         return $files;
